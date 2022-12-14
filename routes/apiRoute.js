@@ -1,57 +1,38 @@
-const fs = require("fs");
-const express = require("express");
-const router = express.Router();
-const noteID = require("../helpers/uuid");
-const data = require("../db/db.json");
+const api = require("express").Router();
+const { v4: uuidv4 } = require("uuid");
+const {
+  readAndAppend,
+  readFromFile,
+  writeToFile,
+} = require("../helpers/fsUtils");
 
-router.get("/api/notes", (req, res) => {
-  const read = fs.readFile(data, "utf-8");
-  res.json(read);
+api.get("/notes", (req, res) => {
+  readFromFile("./db/db.json").then((data) => res.json(JSON.parse(data)));
 });
 
-router.post("/api/notes", (req, res) => {
+api.post("/notes", (req, res) => {
+  console.log(req.body);
+
   const { title, text } = req.body;
 
-  if (title && text) {
+  if (req.body) {
     const newNote = {
       title,
       text,
-      id: noteID,
+      id: uuidv4().slice(0, 4),
     };
 
-    // Obtain existing notes
-    fs.readFile("../db/db.json", "utf8", (err, data) => {
-      if (err) {
-        console.error(err);
-      } else {
-        // Convert string into JSON object
-        const parsedNotes = JSON.parse(data);
-
-        // Add a new note
-        parsedNotes.push(newNote);
-
-        // Write updated notes back to the file
-        fs.writeFile(
-          "../db/db.json",
-          JSON.stringify(parsedNotes, null, 3),
-          (writeErr) =>
-            writeErr
-              ? console.error(writeErr)
-              : console.info("Successfully updated notes!")
-        );
-      }
-    });
+    readAndAppend(newNote, "./db/db.json");
 
     const response = {
       status: "success",
       body: newNote,
     };
 
-    console.log(response);
-    res.status(201).json(response);
+    res.json(response);
   } else {
-    res.status(500).json("Error in posting review");
+    res.json("Error in posting new note");
   }
 });
 
-module.exports = router;
+module.exports = api;
