@@ -1,22 +1,16 @@
 const express = require("express");
-
-const { log } = require("./middleware/log");
-
-const apiRoute = require("./routes/apiRoute");
-const htmlRoute = require("./routes/htmlRoute");
-
+const htmlRoutes = require("./routes/htmlRoutes");
+const apiRoutes = require("./routes/apiRoutes");
+const app = express();
 const PORT = process.env.PORT || 8001;
 
-const app = express();
-app.use(log);
-
-app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 app.use(express.static("public"));
 
-app.use("/api", apiRoute);
-app.use("/", htmlRoute);
+app.use("/api", apiRoutes);
+app.use("/", htmlRoutes);
 
-app.listen(PORT, () =>
-  console.log(`App listening at http://localhost:${PORT}! ✅`)
-);
+app.listen(PORT, () => {
+  console.log(`App listening at http://localhost:${PORT}! ✅`);
+});

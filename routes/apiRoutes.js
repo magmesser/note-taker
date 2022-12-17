@@ -1,13 +1,12 @@
 const api = require("express").Router();
+const fs = require("fs");
+let db = require("../db/db.json");
 const { v4: uuidv4 } = require("uuid");
-const {
-  readAndAppend,
-  readFromFile,
-  writeToFile,
-} = require("../helpers/fsUtils");
 
 api.get("/notes", (req, res) => {
-  readFromFile("./db/db.json").then((data) => res.json(JSON.parse(data)));
+  db = JSON.parse(fs.readFileSync("./db/db.json", "utf-8"));
+
+  res.json(db);
 });
 
 api.post("/notes", (req, res) => {
@@ -22,7 +21,8 @@ api.post("/notes", (req, res) => {
       id: uuidv4().slice(0, 4),
     };
 
-    readAndAppend(newNote, "./db/db.json");
+    db.push(newNote);
+    fs.writeFileSync("./db/db.json", JSON.stringify(db));
 
     const response = {
       status: "success",
